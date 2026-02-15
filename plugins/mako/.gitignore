@@ -1,0 +1,17 @@
+# SHODH memory data (local per-machine)
+memory/shodh/
+
+# SHODH local config (contains generated API key)
+servers/shodh-memory/shodh-config.json
+
+# SHODH binaries (download per-machine, ~40MB)
+servers/shodh-memory/shodh-memory-server.exe
+servers/shodh-memory/shodh-tui.exe
+servers/shodh-memory/onnxruntime.dll
+servers/shodh-memory/*.zip
+
+# MCP config (generated from shodh-config.json by hook)
+.mcp.json
+
+# Old memory service data
+memory/db/

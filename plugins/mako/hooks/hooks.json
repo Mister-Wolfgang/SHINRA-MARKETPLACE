@@ -1,0 +1,35 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/ensure-shodh-server.js\"",
+            "timeout": 120000,
+            "statusMessage": "🧠 Starting shodh-memory server..."
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject-rufus.js\"",
+            "statusMessage": "👔 Rufus Shinra prend le controle..."
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-commit-check.js\"",
+            "timeout": 180000,
+            "statusMessage": "🔥 Running tests before commit..."
+          }
+        ]
+      }
+    ],
+    "SubagentStop": []
+  }
+}

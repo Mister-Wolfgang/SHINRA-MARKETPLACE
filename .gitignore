@@ -1,0 +1,32 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+
+# Snapshots (local state, not committed)
+snapshots/
+
+# Claude docs (reference only, not part of plugin)
+claude_docs/
