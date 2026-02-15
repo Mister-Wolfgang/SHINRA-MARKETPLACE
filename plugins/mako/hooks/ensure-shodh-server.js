@@ -515,29 +515,36 @@ async function installServiceWindows(binPath, args, config) {
     };
   }
 
-  // Step 2: Remove existing service if any (idempotent reinstall)
-  try {
-    winExec(`"${nssmPath}" stop ${SERVICE_NAME_WIN}`, {
-      windowsHide: true,
-      timeout: 15000,
-      stdio: "pipe",
-    });
-  } catch {
-    // Service wasn't running or doesn't exist
+  // Step 2: If service already exists, update config in-place instead of
+  // removing it. nssm set works without admin; nssm remove/install need admin.
+  // NEVER remove a working service if we can't guarantee reinstall will succeed.
+  const existingService = checkServiceWindows();
+  if (existingService.exists) {
+    try {
+      winExec(`"${nssmPath}" set ${SERVICE_NAME_WIN} Application "${binPath}"`,
+        { windowsHide: true, timeout: 10000, stdio: "pipe" });
+      winExec(`"${nssmPath}" set ${SERVICE_NAME_WIN} AppParameters "--host ${config.host} --port ${config.port} --storage ""${STORAGE_PATH}"""`,
+        { windowsHide: true, timeout: 10000, stdio: "pipe" });
+      winExec(`"${nssmPath}" set ${SERVICE_NAME_WIN} AppEnvironmentExtra SHODH_API_KEYS=${config.api_key}`,
+        { windowsHide: true, timeout: 10000, stdio: "pipe" });
+      log("Existing Windows service reconfigured via NSSM (no reinstall needed)");
+      return { success: true, message: "Windows service updated via NSSM (existing service reconfigured)" };
+    } catch (err) {
+      log(`Failed to update existing service: ${err.message}`);
+      return {
+        success: false,
+        message: `Failed to reconfigure existing service: ${err.message}`,
+        manualInstructions: [
+          "Run these commands in an elevated (Administrator) terminal:",
+          "",
+          `"${nssmPath}" set ${SERVICE_NAME_WIN} AppEnvironmentExtra SHODH_API_KEYS=${config.api_key}`,
+          `"${nssmPath}" restart ${SERVICE_NAME_WIN}`,
+        ].join("\n"),
+      };
+    }
   }
 
-  try {
-    winExec(`"${nssmPath}" remove ${SERVICE_NAME_WIN} confirm`, {
-      windowsHide: true,
-      timeout: 10000,
-      stdio: "pipe",
-    });
-    log("Removed existing Windows service for reinstall");
-  } catch {
-    // Service didn't exist -- that's fine
-  }
-
-  // Step 3: Install the service via NSSM
+  // Step 3: Install new service via NSSM (only reached if no service exists)
   try {
     // Install: nssm install <name> <binary> <args...>
     winExec(
@@ -1016,19 +1023,42 @@ async function main() {
       return;
     }
     log("Health OK but API key mismatch -- forcing restart with correct key");
-    // Stop the SERVICE first (not just the process) to prevent NSSM from
-    // auto-restarting the process with the old key.
+
+    // If an NSSM service exists, reconfigure it in-place (no admin needed for
+    // nssm set). This avoids the destructive remove+install cycle that requires
+    // admin and would leave the server dead if install fails.
+    if (PLATFORM === "win32" && serviceStatus.exists) {
+      try {
+        const nssmPath = getNssmPath();
+        winExec(`"${nssmPath}" set ${SERVICE_NAME_WIN} AppEnvironmentExtra SHODH_API_KEYS=${config.api_key}`,
+          { windowsHide: true, timeout: 10000, stdio: "pipe" });
+        winExec(`"${nssmPath}" set ${SERVICE_NAME_WIN} AppParameters "--host ${config.host} --port ${config.port} --storage ""${STORAGE_PATH}"""`,
+          { windowsHide: true, timeout: 10000, stdio: "pipe" });
+        log("NSSM service config updated, restarting...");
+        winExec(`"${nssmPath}" restart ${SERVICE_NAME_WIN}`,
+          { windowsHide: true, timeout: 20000, stdio: "pipe" });
+        await new Promise((r) => setTimeout(r, 3000));
+        if (await checkHealth(config) && await checkAuth(config)) {
+          output("shodh-memory server running (service mode, reconfigured)");
+          return;
+        }
+        log("NSSM reconfigure succeeded but health/auth still failing, falling through");
+      } catch (err) {
+        log(`NSSM reconfigure failed: ${err.message}, falling through`);
+      }
+    }
+
+    // Fallback for non-Windows or if NSSM reconfigure failed:
+    // stop the service, kill the process, let Steps 7-8 handle restart.
     if (PLATFORM === "win32" && serviceStatus.exists) {
       try {
         winExec(`powershell -NoProfile -Command "Stop-Service -Name '${SERVICE_NAME_WIN}' -Force -ErrorAction SilentlyContinue"`,
           { windowsHide: true, timeout: 15000, stdio: "pipe" });
         log("Windows service stopped");
       } catch {
-        // If Stop-Service fails (no admin), fall back to killing the process
         log("Stop-Service failed, falling back to Stop-Process");
       }
     }
-    // Kill any remaining process
     try {
       if (PLATFORM === "win32") {
         winExec(
@@ -1040,8 +1070,6 @@ async function main() {
       }
       await new Promise((r) => setTimeout(r, 2000));
     } catch {}
-    // Force reinstall + restart by resetting status
-    serviceStatus.exists = false;
     serviceStatus.running = false;
   }
 
