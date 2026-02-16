@@ -75,6 +75,8 @@ function syncMcpConfig(pythonCmd) {
     env: {
       MCP_MEMORY_STORAGE_BACKEND: "sqlite_vec",
       MCP_MEMORY_SQLITE_PATH: MEMORY_DB_PATH.replace(/\\/g, "/"),
+      MCP_HTTP_ENABLED: "true",
+      MCP_HTTP_PORT: "8000",
     },
   };
 
