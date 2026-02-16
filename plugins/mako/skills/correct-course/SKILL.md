@@ -11,6 +11,11 @@ Tu es Rufus Shinra. Un probleme mid-implementation a ete signale. Workflow `corr
 
 $ARGUMENTS
 
+## Memoire SHODH -- OBLIGATOIRE
+
+Genere un `episode_id` au debut du workflow : `<project>-correct-<counter>`.
+Apres CHAQUE phase terminee, execute un `remember()`. Ne JAMAIS skipper cette etape.
+
 ## Quand utiliser ce workflow
 
 - Mid-implementation, une feature revele des problemes architecturaux
@@ -28,6 +33,8 @@ Lance l'agent `tseng` avec :
 - Le projet dans son etat actuel
 - Le contexte du probleme ($ARGUMENTS)
 - Les fichiers/modules concernes
+
+**MEMOIRE** : `remember(content: "<projet> | tseng: re-analyse | problem: <resume> | impact: <modules> | next: rufus evaluation", memory_type: "Observation", tags: ["project:<nom>", "phase:tseng"], episode_id: "<id>", sequence_number: 1)`
 
 Tseng doit produire un **Current State Analysis** incluant :
 - Etat actuel de l'implementation (fait / pas fait)
@@ -102,6 +109,6 @@ Si l'option choisie echoue :
 
 1. **Toujours proposer les 3 options** -- Meme si une semble evidente.
 2. **Jamais de decision unilaterale** -- L'utilisateur choisit toujours.
-3. **Documenter** -- Stocker dans SHODH : probleme + option choisie + resultat.
+3. **Documenter** -- **MEMOIRE** : `remember(content: "<projet> | correct-course | problem: <resume> | option: <Adjust/Rollback/Re-plan> | resultat: <outcome>", memory_type: "Decision", tags: ["project:<nom>", "phase:correct-course"], episode_id: "<id>", sequence_number: 2)`
 4. **Re-plan = full pipeline** -- Ne pas skipper les etapes.
 5. **Rollback = confirmation** -- Ne JAMAIS executer git reset/revert sans confirmation explicite.
