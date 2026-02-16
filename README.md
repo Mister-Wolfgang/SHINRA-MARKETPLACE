@@ -1,6 +1,6 @@
 ![SHINRA -- MAKO](logo.png)
 
-# SHINRA -- MAKO (Modular Agent Kit for Orchestration) v4.0
+# SHINRA -- MAKO (Modular Agent Kit for Orchestration) v4.1
 
 > *"Le pouvoir n'est rien sans controle."* -- Rufus Shinra 👔
 
@@ -69,7 +69,7 @@ Parlez directement a Rufus 👔 -- il analyse votre demande et delegue automatiq
 "Separe la logique du rendu"
 ```
 
-## Features v4.0
+## Features v4.1
 
 ### TDD Protocol 🧪
 
