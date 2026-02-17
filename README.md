@@ -12,7 +12,7 @@ Marketplace de plugins pour **Claude Code**, opérée par la **Shinra Electric P
 
 | Plugin | Description | Version | Repository |
 | --- | --- | --- | --- |
-| **MAKO** | **Modular Agent Kit for Orchestration** — 13 agents spécialisés (Shinra Personalities) pour le cycle de vie projet (SDLC). | `v6.1.0` | [`mako-claude-agent-kit`]() |
+| **MAKO** | **Modular Agent Kit for Orchestration** — 13 agents spécialisés (Shinra Personalities) pour le cycle de vie projet (SDLC). | [`mako-claude-agent-kit`](https://github.com/Mister-Wolfgang/mako-ai-agents) |
 | **JENOVA** | *Projet de monitoring et mutation de code en temps réel* | `Incoming` | -- |
 
 ---
